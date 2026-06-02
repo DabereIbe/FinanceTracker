@@ -1,0 +1,146 @@
+@model FinanceTracker.Presentation.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Income</h6>
+                    <h3>$@Model.Summary.TotalIncome.ToString("F2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Expenses</h6>
+                    <h3>$@Model.Summary.TotalExpense.ToString("F2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Net Balance</h6>
+                    <h3>$@Model.Summary.NetBalance.ToString("F2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Categories</h6>
+                    <h3>@Model.Summary.ExpenseByCategory.Count</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Overview -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header mb-0">
+                    <div class="d-flex justify-content-between mb-1">
+                        <h5>Budget Status</h5>
+                        <a asp-controller="Budget" asp-action="Index" class="btn btn-primary">Manage Budgets</a>
+                    </div>
+                    
+                </div>
+                <div class="card-body">
+                    @if (Model.Budgets.Any())
+                    {
+                        @foreach (var budget in Model.Budgets)
+                        {
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>@budget.Category</span>
+                                    <span>$@budget.CurrentSpent.ToString("F2") / $@budget.Limit.ToString("F2")</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar @(budget.IsOverBudget ? "bg-danger" : "bg-success")" 
+                                         role="progressbar" 
+                                         style="width: @(Math.Min(budget.PercentageUsed, 100))%">
+                                        @budget.PercentageUsed.ToString("F0")%
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No budgets set. <a asp-action="Create" asp-controller="Budget">Create one now</a></p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Alerts</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.OverBudgetItems.Any())
+                    {
+                        @foreach (var item in Model.OverBudgetItems)
+                        {
+                            <div class="alert alert-warning" role="alert">
+                                <strong>@item.Category</strong> is over budget by $@(item.CurrentSpent - item.Limit).ToString("F2")
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">All budgets are within limits!</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Breakdown -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Expense Breakdown by Category</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Summary.ExpenseByCategory.Any())
+                    {
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in Model.Summary.ExpenseByCategory)
+                                {
+                                    var percentage = Model.Summary.TotalExpense > 0 ? (category.Value / Model.Summary.TotalExpense) * 100 : 0;
+                                    <tr>
+                                        <td>@category.Key</td>
+                                        <td>$@category.Value.ToString("F2")</td>
+                                        <td>@percentage.ToString("F1")%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No expense data available.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

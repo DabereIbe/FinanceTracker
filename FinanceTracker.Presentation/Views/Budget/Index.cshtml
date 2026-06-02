@@ -1,0 +1,72 @@
+@model List<FinanceTracker.Application.DTOs.BudgetDto>
+@{
+    ViewData["Title"] = "Budgets";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Budget Management</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" asp-controller="Budget" class="btn btn-primary">+ Create Budget</a>
+        </div>
+    </div>
+
+    <div class="row">
+        @if (Model.Any())
+        {
+            @foreach (var budget in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">@budget.Category</h5>
+                                <span class="badge bg-secondary">@budget.Period</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Spent</span>
+                                    <strong>$@budget.CurrentSpent.ToString("F2") / $@budget.Limit.ToString("F2")</strong>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar @(budget.IsOverBudget ? "bg-danger" : "bg-success")" 
+                                         role="progressbar" 
+                                         style="width: @(Math.Min(budget.PercentageUsed, 100))%">
+                                        @budget.PercentageUsed.ToString("F0")%
+                                    </div>
+                                </div>
+                            </div>
+                            @if (budget.IsOverBudget)
+                            {
+                                <div class="alert alert-danger alert-sm mb-3">
+                                    Over budget by $@(budget.CurrentSpent - budget.Limit).ToString("F2")
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex gap-2">
+                                <a asp-action="Edit" asp-controller="Budget" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <form asp-action="Delete" asp-controller="Budget" asp-route-id="@budget.Id" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this budget?')">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No budgets created yet. <a asp-action="Create" asp-controller="Budget">Create your first budget</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

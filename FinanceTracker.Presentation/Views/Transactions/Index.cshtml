@@ -1,0 +1,87 @@
+@model FinanceTracker.Presentation.ViewModels.TransactionListViewModel
+@{
+    ViewData["Title"] = "Transactions";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Transactions</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" asp-controller="Transactions" class="btn btn-primary">+ Add Transaction</a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="startDate" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="endDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Transactions.Any())
+                    {
+                        @foreach (var transaction in Model.Transactions)
+                        {
+                            var badgeClass = transaction.Type == "Income" ? "bg-success" : "bg-danger";
+                            <tr>
+                                <td>@transaction.TransactionDate.ToString("MMM dd, yyyy")</td>
+                                <td>@transaction.Category</td>
+                                <td>
+                                    <span class="badge @badgeClass">@transaction.Type</span>
+                                </td>
+                                <td>@transaction.Description</td>
+                                <td>
+                                    <strong class="@(transaction.Type == "Income" ? "text-success" : "text-danger")">
+                                        @(transaction.Type == "Income" ? "+" : "-")$@transaction.Amount.ToString("F2")
+                                    </strong>
+                                </td>
+                                <td>
+                                    <a asp-action="Edit" asp-controller="Transactions" asp-route-id="@transaction.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <form asp-action="Delete" asp-controller="Transactions" asp-route-id="@transaction.Id" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this transaction?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No transactions found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
